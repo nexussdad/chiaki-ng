@@ -2427,6 +2427,113 @@ DialogView {
                         RowLayout {
                             spacing: 10
                             Layout.alignment: Qt.AlignHCenter
+                            visible: true
+                            Label {
+                                Layout.alignment: Qt.AlignRight
+                                text: qsTr("Share Button Touch:")
+                            }
+
+                            C.CheckBox {
+                                id: shareTouchEnabled
+                                sendOutput: true
+                                text: qsTr("Enable Share button touchpad for Xbox controllers")
+                                checked: Chiaki.settings.shareTouchEnabled
+                                onToggled: Chiaki.settings.shareTouchEnabled = checked
+                                KeyNavigation.priority: KeyNavigation.BeforeItem
+                                KeyNavigation.up: posButtons
+                                KeyNavigation.down: shareTouchThreshold
+                                KeyNavigation.left: shareTouchEnabled
+                                KeyNavigation.right: shareTouchEnabled
+                            }
+
+                            Label {
+                                Layout.alignment: Qt.AlignRight
+                                text: qsTr("(Checked)")
+                            }
+                        }
+                        RowLayout {
+                            spacing: 10
+                            Layout.alignment: Qt.AlignHCenter
+                            visible: Chiaki.settings.shareTouchEnabled
+                            Label {
+                                Layout.alignment: Qt.AlignRight
+                                text: qsTr("Long Press Threshold:")
+                            }
+
+                            C.Slider {
+                                id: shareTouchThreshold
+                                sendOutput: true
+                                Layout.preferredWidth: 250
+                                from: 100
+                                to: 500
+                                stepSize: 10
+                                value: Chiaki.settings.shareTouchThreshold
+                                onMoved: Chiaki.settings.shareTouchThreshold = value
+
+                                Label {
+                                    anchors {
+                                        left: parent.right
+                                        verticalCenter: parent.verticalCenter
+                                        leftMargin: 10
+                                    }
+                                    text: qsTr("%1 ms").arg(parent.value)
+                                }
+                                KeyNavigation.priority: KeyNavigation.BeforeItem
+                                KeyNavigation.up: shareTouchEnabled
+                                KeyNavigation.down: shareTouchSensitivity
+                                KeyNavigation.left: shareTouchThreshold
+                                KeyNavigation.right: shareTouchThreshold
+                            }
+
+                            Label {
+                                Layout.alignment: Qt.AlignRight
+                                Layout.leftMargin: 100
+                                text: qsTr("(200 ms)")
+                            }
+                        }
+                        RowLayout {
+                            spacing: 10
+                            Layout.alignment: Qt.AlignHCenter
+                            visible: Chiaki.settings.shareTouchEnabled
+                            Label {
+                                Layout.alignment: Qt.AlignRight
+                                text: qsTr("Touch Sensitivity:")
+                            }
+
+                            C.Slider {
+                                id: shareTouchSensitivity
+                                sendOutput: true
+                                Layout.preferredWidth: 250
+                                from: 100
+                                to: 1000
+                                stepSize: 50
+                                value: Chiaki.settings.shareTouchSensitivity
+                                onMoved: Chiaki.settings.shareTouchSensitivity = value
+
+                                Label {
+                                    anchors {
+                                        left: parent.right
+                                        verticalCenter: parent.verticalCenter
+                                        leftMargin: 10
+                                    }
+                                    text: qsTr("%1").arg(parent.value)
+                                }
+                                KeyNavigation.priority: KeyNavigation.BeforeItem
+                                KeyNavigation.up: shareTouchThreshold
+                                KeyNavigation.down: rumbleHaptics
+                                KeyNavigation.left: shareTouchSensitivity
+                                KeyNavigation.right: shareTouchSensitivity
+                            }
+
+                            Label {
+                                Layout.alignment: Qt.AlignRight
+                                Layout.leftMargin: 100
+                                text: qsTr("(500)")
+                            }
+                        }
+                        RowLayout {
+                            spacing: 10
+                            Layout.alignment: Qt.AlignHCenter
                             Label {
                                 Layout.alignment: Qt.AlignRight
                                 text: qsTr("Rumble Haptics:")

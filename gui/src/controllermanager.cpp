@@ -358,7 +358,8 @@ void ControllerManager::ControllerClosed(Controller *controller)
 Controller::Controller(int device_id, ControllerManager *manager)
 : QObject(manager), ref(0), last_motion_timestamp(0), micbutton_push(false), is_dualsense(false),
   is_dualsense_edge(false), has_led(false), firmware_version(0), updating_mapping_button(false), is_handheld(false),
-  is_steam_virtual(false), is_steam_virtual_unmasked(false), enable_analog_stick_mapping(false)
+  is_steam_virtual(false), is_steam_virtual_unmasked(false), enable_analog_stick_mapping(false),
+  share_button_pressed(false), share_touch_active(false), share_touch_id(-1), share_touch_enabled(true)
 {
 	this->id = device_id;
 	this->manager = manager;
@@ -536,6 +537,46 @@ inline bool Controller::HandleButtonEvent(SDL_ControllerButtonEvent event) {
 			break;
 		case SDL_CONTROLLER_BUTTON_BACK:
 			ps_btn = CHIAKI_CONTROLLER_BUTTON_SHARE;
+			// Handle Share button touchpad emulation for Xbox controllers
+			if(share_touch_enabled && !IsPS())
+			{
+				if(event.type == SDL_CONTROLLERBUTTONDOWN)
+				{
+					share_button_pressed = true;
+					share_press_timer.start();
+					// Don't send the Share button event yet
+					return true;
+				}
+				else // SDL_CONTROLLERBUTTONUP
+				{
+					share_button_pressed = false;
+					if(share_touch_active)
+					{
+						// End touchpad interaction
+						if(share_touch_id >= 0)
+						{
+							chiaki_controller_state_stop_touch(&state, share_touch_id);
+							share_touch_id = -1;
+						}
+						share_touch_active = false;
+						// Don't send Share button event
+						return true;
+					}
+					else if(share_press_timer.elapsed() < SHARE_LONG_PRESS_THRESHOLD)
+					{
+						// Short press = touchpad click at center
+						if(share_touch_id < 0)
+						{
+							share_touch_id = chiaki_controller_state_start_touch(&state,
+								PS_TOUCHPAD_MAXX / 2, PS_TOUCHPAD_MAXY / 2);
+							// Immediately release for click effect
+							chiaki_controller_state_stop_touch(&state, share_touch_id);
+							share_touch_id = -1;
+						}
+						return true; // Consume the event
+					}
+				}
+			}
 			break;
 		case SDL_CONTROLLER_BUTTON_GUIDE:
 			ps_btn = CHIAKI_CONTROLLER_BUTTON_PS;
@@ -595,9 +636,47 @@ inline bool Controller::HandleAxisEvent(SDL_ControllerAxisEvent event) {
 			break;
 		case SDL_CONTROLLER_AXIS_RIGHTX:
 			state.right_x = event.value;
+			// Handle Share + Right Stick = Touchpad movement
+			if(share_touch_enabled && share_button_pressed &&
+			   share_press_timer.elapsed() >= SHARE_LONG_PRESS_THRESHOLD)
+			{
+				if(!share_touch_active)
+				{
+					// Start touchpad mode
+					share_touch_active = true;
+					share_touch_pos = qMakePair(PS_TOUCHPAD_MAXX / 2, PS_TOUCHPAD_MAXY / 2);
+					share_touch_id = chiaki_controller_state_start_touch(&state,
+						share_touch_pos.first, share_touch_pos.second);
+				}
+				// Update touch position based on stick movement
+				int delta_x = event.value / 500; // Adjust sensitivity
+				share_touch_pos.first = qBound(0,
+					share_touch_pos.first + delta_x, PS_TOUCHPAD_MAXX);
+				chiaki_controller_state_set_touch_pos(&state, share_touch_id,
+					share_touch_pos.first, share_touch_pos.second);
+			}
 			break;
 		case SDL_CONTROLLER_AXIS_RIGHTY:
 			state.right_y = event.value;
+			// Handle Share + Right Stick = Touchpad movement (Y axis - inverted)
+			if(share_touch_enabled && share_button_pressed &&
+			   share_press_timer.elapsed() >= SHARE_LONG_PRESS_THRESHOLD)
+			{
+				if(!share_touch_active)
+				{
+					// Start touchpad mode if not already active
+					share_touch_active = true;
+					share_touch_pos = qMakePair(PS_TOUCHPAD_MAXX / 2, PS_TOUCHPAD_MAXY / 2);
+					share_touch_id = chiaki_controller_state_start_touch(&state,
+						share_touch_pos.first, share_touch_pos.second);
+				}
+				// Update touch position based on stick movement (invert Y)
+				int delta_y = event.value / 500; // Adjust sensitivity
+				share_touch_pos.second = qBound(0,
+					share_touch_pos.second - delta_y, PS_TOUCHPAD_MAXY);
+				chiaki_controller_state_set_touch_pos(&state, share_touch_id,
+					share_touch_pos.first, share_touch_pos.second);
+			}
 			break;
 		default:
 			return false;
