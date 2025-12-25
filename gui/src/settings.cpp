@@ -2281,36 +2281,3 @@ QMap<Qt::Key, int> Settings::GetControllerMappingForDecoding()
 	}
 	return result;
 }
-
-bool Settings::GetShareTouchEnabled() const
-{
-	return settings.value("share_touch/enabled", true).toBool();
-}
-
-void Settings::SetShareTouchEnabled(bool enabled)
-{
-	settings.setValue("share_touch/enabled", enabled);
-	emit ControllerMappingsUpdated();
-}
-
-int Settings::GetShareTouchThreshold() const
-{
-	return settings.value("share_touch/threshold", 200).toInt();
-}
-
-void Settings::SetShareTouchThreshold(int threshold_ms)
-{
-	settings.setValue("share_touch/threshold", threshold_ms);
-	emit ControllerMappingsUpdated();
-}
-
-int Settings::GetShareTouchSensitivity() const
-{
-	return settings.value("share_touch/sensitivity", 500).toInt();
-}
-
-void Settings::SetShareTouchSensitivity(int sensitivity)
-{
-	settings.setValue("share_touch/sensitivity", sensitivity);
-	emit ControllerMappingsUpdated();
-}

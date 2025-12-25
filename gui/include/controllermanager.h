@@ -111,15 +111,6 @@ class Controller : public QObject
 		uint32_t last_motion_timestamp;
 #endif
 
-		// Share button touchpad emulation state
-		bool share_button_pressed;
-		QElapsedTimer share_press_timer;
-		bool share_touch_active;
-		int8_t share_touch_id;
-		QPair<uint16_t, uint16_t> share_touch_pos;
-		bool share_touch_enabled;
-		static const qint64 SHARE_LONG_PRESS_THRESHOLD = 200; // ms
-
 	public:
 		~Controller();
 
@@ -152,8 +143,6 @@ class Controller : public QObject
 		bool IsSteamVirtualUnmasked();
 		bool IsDualSenseEdge();
 		void resetMotionControls();
-	void SetShareTouchEnabled(bool enabled) { share_touch_enabled = enabled; }
-	bool IsShareTouchEnabled() { return share_touch_enabled; }
 
 	signals:
 		void StateChanged();

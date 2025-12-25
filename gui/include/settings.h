@@ -671,14 +671,6 @@ class Settings : public QObject
 		void SetControllerMapping(const QString &vidpid, const QString &mapping);
 		void RemoveControllerMapping(const QString &vidpid);
 
-		// Share button touchpad emulation settings
-		bool GetShareTouchEnabled() const;
-		void SetShareTouchEnabled(bool enabled);
-		int GetShareTouchThreshold() const;
-		void SetShareTouchThreshold(int threshold_ms);
-		int GetShareTouchSensitivity() const;
-		void SetShareTouchSensitivity(int sensitivity);
-
 		static QString GetChiakiControllerButtonName(int);
 		void SetControllerButtonMapping(int, Qt::Key);
 		QMap<int, Qt::Key> GetControllerMapping();
